@@ -95,16 +95,7 @@ export class DashboardComponent implements OnInit {
   icTimer = icTimer;
   icMoreVert = icMoreVert;
 
-  constructor(
-    private router: Router,
-    private cd: ChangeDetectorRef,
-    private tokenStorage: TokenStorageService
-  ) {
-    console.log("a");
-    // if (!this.tokenStorage.getToken()) {
-    //   this.router.navigate(["/login"]);
-    // }
-  }
+  constructor(private router: Router, private cd: ChangeDetectorRef) {}
 
   ngOnInit() {
     setTimeout(() => {

@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   OnInit,
+  ViewChild,
 } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -11,6 +12,8 @@ import icVisibility from "@iconify/icons-ic/twotone-visibility";
 import icVisibilityOff from "@iconify/icons-ic/twotone-visibility-off";
 import { fadeInUp400ms } from "../../../@vex/animations/fade-in-up.animation";
 import { TokenStorageService } from "../auth/token-storage.service";
+import { AuthJwtService } from "../auth/auth-jwt.service";
+import { AuthLogin } from "../auth/auth-login";
 
 @Component({
   selector: "login",
@@ -21,7 +24,8 @@ import { TokenStorageService } from "../auth/token-storage.service";
 })
 export class LoginComponent implements OnInit {
   form: FormGroup;
-
+  @ViewChild('myInput') myInput: any;
+  errStatus: number;
   inputType = "password";
   visible = false;
 
@@ -32,7 +36,8 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private tokenStorage: TokenStorageService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private authService: AuthJwtService
   ) {
     if (this.tokenStorage.getToken()) {
       this.router.navigate(["/dashboard"]);
@@ -47,7 +52,12 @@ export class LoginComponent implements OnInit {
   }
 
   send() {
-    this.router.navigate(["/dashboard"]);
+    this.authenticate(
+      new AuthLogin(
+        this.form.get("username").value,
+        this.form.get("password").value
+      )
+    );
   }
 
   toggleVisibility() {
@@ -60,5 +70,18 @@ export class LoginComponent implements OnInit {
       this.visible = true;
       this.cd.markForCheck();
     }
+  }
+
+  public authenticate(userInfo) {
+    this.authService
+      .authenticate(userInfo)
+      .then((data) => {
+        this.tokenStorage.saveToken(data.accessToken, data.accessToken);
+        this.router.navigate(["/dashboard"]);
+      })
+      .catch((error) => {
+        this.errStatus = error.status;
+        this.myInput.nativeElement.focus();
+      });
   }
 }
